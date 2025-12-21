@@ -1,0 +1,28 @@
+{
+  "name": "The Floor - Play Online - Fan Game",
+  "short_name": "The Floor",
+  "description": "Play The Floor online for free! A fan-made online version of the hit Fox game show hosted by Rob Lowe. Challenge friends in trivia duels and compete to control the entire floor.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000428",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ],
+  "categories": ["games", "entertainment", "trivia"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Start Game",
+      "short_name": "Play",
+      "description": "Start a new game of The Floor",
+      "url": "/presenter",
+      "icons": [{ "src": "/favicon.ico", "sizes": "any" }]
+    }
+  ]
+}

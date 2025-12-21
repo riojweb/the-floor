@@ -15,6 +15,7 @@ import {
 } from "../presenter/page";
 import { useSound } from "../hooks/useSound";
 import { useSearchParams } from "next/navigation";
+import FloorPageLayout from "../components/FloorPageLayout";
 
 export enum REVEAL_STATE {
   NOT_STARTED = "NOT_STARTED",
@@ -260,104 +261,108 @@ export default function Round({
 
   if (currentTurn == null) {
     return (
-      <div className="fixed inset-0 bg-opacity-75 flex items-center justify-center z-50">
-        <p className="text-[12rem] font-bold text-yellow-500 text-center">
-          {countdown !== null ? countdown : "THE FLOOR"}
-        </p>
-      </div>
+      <FloorPageLayout>
+        <div className="flex items-center justify-center w-full h-full">
+          <p className="text-[12rem] font-bold text-yellow-500 text-center">
+            {countdown !== null ? countdown : "THE FLOOR"}
+          </p>
+        </div>
+      </FloorPageLayout>
     );
   }
 
   return (
-    <div className="p-10 relative">
-      <div className="flex flex-col items-center justify-center bg-white h-[75vh] mx-auto rounded-lg p-4">
-        <RoundDisplay
-          examples={examples}
-          selectedExampleIndex={selectedExampleIndex}
-          folder={folder}
-        />
-      </div>
-      <div className="flex flex-col gap-2 w-full">
-        <div className="flex flex-row gap-2 w-full justify-between p-2">
-          <div
-            className={classNames(
-              "bg-blue-500 outline outline-4 outline-yellow-500 px-6 py-3 transform skew-x-[15deg] flex items-center justify-center min-w-[120px] min-h-[60px] rounded",
-              {
-                "bg-red-500": currentTurn === "challenger" && isBad,
-                "bg-gray-500": currentTurn !== "challenger" && !isFinished,
-                "bg-green-500": currentTurn !== "challenger" && isFinished,
-              }
-            )}
-          >
-            <p className="text-2xl font-bold text-white uppercase transform skew-x-[-15deg]">
-              {challenger.person}
-            </p>
+    <FloorPageLayout>
+      <div className="p-10 relative w-full h-full">
+        <div className="flex flex-col items-center justify-center bg-white h-[75vh] mx-auto rounded-lg p-4">
+          <RoundDisplay
+            examples={examples}
+            selectedExampleIndex={selectedExampleIndex}
+            folder={folder}
+          />
+        </div>
+        <div className="flex flex-col gap-2 w-full">
+          <div className="flex flex-row gap-2 w-full justify-between p-2">
+            <div
+              className={classNames(
+                "bg-blue-500 outline outline-4 outline-yellow-500 px-6 py-3 transform skew-x-[15deg] flex items-center justify-center min-w-[120px] min-h-[60px] rounded",
+                {
+                  "bg-red-500": currentTurn === "challenger" && isBad,
+                  "bg-gray-500": currentTurn !== "challenger" && !isFinished,
+                  "bg-green-500": currentTurn !== "challenger" && isFinished,
+                }
+              )}
+            >
+              <p className="text-2xl font-bold text-white uppercase transform skew-x-[-15deg]">
+                {challenger.person}
+              </p>
+            </div>
+            <div
+              className={classNames(
+                "bg-blue-500 outline outline-4 outline-yellow-500 px-6 py-3 transform skew-x-[-15deg] flex items-center justify-center min-w-[120px] min-h-[60px] rounded",
+                {
+                  "bg-red-500": currentTurn === "defender" && isBad,
+                  "bg-gray-500": currentTurn !== "defender" && !isFinished,
+                  "bg-green-500": currentTurn !== "defender" && isFinished,
+                }
+              )}
+            >
+              <p className="text-2xl font-bold text-white uppercase transform skew-x-[15deg]">
+                {defender.person}
+              </p>
+            </div>
           </div>
-          <div
-            className={classNames(
-              "bg-blue-500 outline outline-4 outline-yellow-500 px-6 py-3 transform skew-x-[-15deg] flex items-center justify-center min-w-[120px] min-h-[60px] rounded",
-              {
-                "bg-red-500": currentTurn === "defender" && isBad,
-                "bg-gray-500": currentTurn !== "defender" && !isFinished,
-                "bg-green-500": currentTurn !== "defender" && isFinished,
-              }
-            )}
-          >
-            <p className="text-2xl font-bold text-white uppercase transform skew-x-[15deg]">
-              {defender.person}
-            </p>
+          <div className="flex flex-row gap-2 w-full px-4">
+            <div
+              className={classNames(
+                "bg-blue-600 px-6 py-4 rounded flex items-center justify-center min-w-[120px]",
+                {
+                  "outline outline-4 outline-yellow-500":
+                    currentTurn === "challenger",
+                  "bg-green-500": currentTurn !== "challenger" && isFinished,
+                  "bg-red-500": currentTurn === "challenger" && isBad,
+                  "bg-gray-500": currentTurn !== "challenger" && !isFinished,
+                }
+              )}
+            >
+              <p className="text-4xl font-bold text-white">
+                {challengerTimeLeft}
+              </p>
+            </div>
+            <div
+              className={classNames(
+                "flex-1 bg-blue-600 px-6 py-4 rounded flex items-center justify-center",
+                {
+                  "bg-red-500": isBad,
+                }
+              )}
+            >
+              <p className="text-4xl font-bold uppercase text-white">
+                {revealExampleName !== REVEAL_STATE.NOT_REVEALED
+                  ? examples[selectedExampleIndex]?.name || ""
+                  : ""}
+              </p>
+            </div>
+            <div
+              className={classNames(
+                "bg-blue-600 px-6 py-4 rounded flex items-center justify-center min-w-[120px]",
+                {
+                  "outline outline-4 outline-yellow-500":
+                    currentTurn === "defender",
+                  "bg-green-500": currentTurn !== "defender" && isFinished,
+                  "bg-red-500": currentTurn === "defender" && isBad,
+                  "bg-gray-500": currentTurn !== "defender" && !isFinished,
+                }
+              )}
+            >
+              <p className={"text-4xl font-bold text-white"}>
+                {defenderTimeLeft}
+              </p>
+            </div>
           </div>
         </div>
-        <div className="flex flex-row gap-2 w-full px-4">
-          <div
-            className={classNames(
-              "bg-blue-600 px-6 py-4 rounded flex items-center justify-center min-w-[120px]",
-              {
-                "outline outline-4 outline-yellow-500":
-                  currentTurn === "challenger",
-                "bg-green-500": currentTurn !== "challenger" && isFinished,
-                "bg-red-500": currentTurn === "challenger" && isBad,
-                "bg-gray-500": currentTurn !== "challenger" && !isFinished,
-              }
-            )}
-          >
-            <p className="text-4xl font-bold text-white">
-              {challengerTimeLeft}
-            </p>
-          </div>
-          <div
-            className={classNames(
-              "flex-1 bg-blue-600 px-6 py-4 rounded flex items-center justify-center",
-              {
-                "bg-red-500": isBad,
-              }
-            )}
-          >
-            <p className="text-4xl font-bold uppercase text-white">
-              {revealExampleName !== REVEAL_STATE.NOT_REVEALED
-                ? examples[selectedExampleIndex]?.name || ""
-                : ""}
-            </p>
-          </div>
-          <div
-            className={classNames(
-              "bg-blue-600 px-6 py-4 rounded flex items-center justify-center min-w-[120px]",
-              {
-                "outline outline-4 outline-yellow-500":
-                  currentTurn === "defender",
-                "bg-green-500": currentTurn !== "defender" && isFinished,
-                "bg-red-500": currentTurn === "defender" && isBad,
-                "bg-gray-500": currentTurn !== "defender" && !isFinished,
-              }
-            )}
-          >
-            <p className={"text-4xl font-bold text-white"}>
-              {defenderTimeLeft}
-            </p>
-          </div>
-        </div>
       </div>
-    </div>
+    </FloorPageLayout>
   );
 }
 

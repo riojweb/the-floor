@@ -13,6 +13,18 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  {
+    rules: {
+      "sort-keys": [
+        "error",
+        "asc",
+        {
+          caseSensitive: false,
+          natural: true,
+        },
+      ],
+    },
+  },
 ]);
 
 export default eslintConfig;

@@ -3,18 +3,18 @@ import {
   Suspense,
   useCallback,
   useEffect,
-  useId,
   useMemo,
   useRef,
   useState,
 } from "react";
-import { useSearchParams } from "next/navigation";
-import { Category, FLOOR_DATA, FloorData } from "../data";
+import { Category, FLOOR_DATA, FloorData, GameDetails } from "../data";
 import classNames from "classnames";
 import { PROJECTOR_MESSAGE_TYPE } from "../presenter/page";
 import Round from "./round";
 import { useLocalStorage } from "usehooks-ts";
 import confetti from "canvas-confetti";
+import FloorPageLayout from "../components/FloorPageLayout";
+import FloorButton from "../components/FloorButton";
 
 interface Round {
   category: Category;
@@ -24,17 +24,17 @@ interface Round {
 
 export function Projector() {
   const [mounted, setMounted] = useState(false);
-  const storageKeyPrefix = "floor-pieces." + "data";
-  const [floorPieces, setFloorPieces, removeFloorPieces] = useLocalStorage<
-    FloorData[]
-  >(storageKeyPrefix + ".floor-pieces", FLOOR_DATA);
+
+  const [gameDetails, setGameDetails, removeGameDetails] = useLocalStorage<
+    GameDetails | undefined
+  >("the-floor-data", undefined);
 
   const [selectedFloorPiece, setSelectedFloorPiece] = useLocalStorage<
     FloorData | undefined
-  >(storageKeyPrefix + ".selected-floor-piece", undefined);
+  >("the-floor-selected-floor-piece", undefined);
 
   const [round, setRound] = useLocalStorage<Round | undefined>(
-    storageKeyPrefix + ".round",
+    "the-floor-round",
     undefined
   );
 
@@ -46,11 +46,10 @@ export function Projector() {
   }, []);
 
   const onRestart = useCallback(() => {
-    removeFloorPieces();
-    setFloorPieces(FLOOR_DATA);
+    removeGameDetails();
     setSelectedFloorPiece(undefined);
     setRound(undefined);
-  }, [removeFloorPieces, setFloorPieces, setSelectedFloorPiece, setRound]);
+  }, [removeGameDetails, setSelectedFloorPiece, setRound]);
 
   const randomizeIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const randomizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -67,7 +66,8 @@ export function Projector() {
       clearTimeout(randomizeTimeoutRef.current);
     }
 
-    const unrandomizedPieces = floorPieces.filter((piece) => !piece.hasPlayed);
+    const unrandomizedPieces =
+      gameDetails?.data?.filter((piece) => !piece.hasPlayed) ?? [];
 
     if (unrandomizedPieces.length === 0) {
       setIsRandomizing(false);
@@ -99,16 +99,20 @@ export function Projector() {
       const finalPiece = finalSelectedPieceRef.current;
       if (finalPiece) {
         setIsRandomizing(false);
-        setFloorPieces((prev) => {
-          return prev.map((piece) => ({
-            ...piece,
-            hasPlayed:
-              piece.person === finalPiece.person ? true : piece.hasPlayed,
-          }));
+        setGameDetails((prev) => {
+          return {
+            ...prev,
+            data:
+              prev?.data?.map((piece) => ({
+                ...piece,
+                hasPlayed:
+                  piece.person === finalPiece.person ? true : piece.hasPlayed,
+              })) ?? [],
+          };
         });
       }
     }, randomDuration);
-  }, [floorPieces, setSelectedFloorPiece, setFloorPieces]);
+  }, [gameDetails, setSelectedFloorPiece, setGameDetails]);
 
   useEffect(() => {
     const channel = new BroadcastChannel("the-floor-projector");
@@ -143,15 +147,17 @@ export function Projector() {
   }, [onRestart, onRandomize]);
 
   const highlightedFloorPieceCategories = useMemo(() => {
-    const allSelectedFloorPieces = floorPieces
-      .map((piece, index) => {
-        const isSameCategory = piece.category === selectedFloorPiece?.category;
-        const isSamePerson = piece.person === selectedFloorPiece?.person;
-        const isValid = isSameCategory && isSamePerson;
+    const allSelectedFloorPieces =
+      gameDetails?.data
+        ?.map((piece: FloorData, index: number) => {
+          const isSameCategory =
+            piece.category === selectedFloorPiece?.category;
+          const isSamePerson = piece.person === selectedFloorPiece?.person;
+          const isValid = isSameCategory && isSamePerson;
 
-        return isValid ? index : null;
-      })
-      .filter((index) => index !== null);
+          return isValid ? index : null;
+        })
+        .filter((index) => index != null) ?? [];
 
     if (allSelectedFloorPieces.length === 0) return [];
 
@@ -160,14 +166,14 @@ export function Projector() {
         getHighlightedFloorPieceCategories(
           index,
           selectedFloorPiece?.person ?? "",
-          floorPieces
+          gameDetails?.data ?? []
         )
       )
       // Filter out selected piece if it's in the highlighted categories
       .filter((category) => category !== selectedFloorPiece?.category);
 
     return highlightedFloorPieceCategories;
-  }, [selectedFloorPiece, floorPieces]);
+  }, [selectedFloorPiece, gameDetails]);
 
   const onSelectOrMerge = (
     winner: FloorData,
@@ -180,23 +186,32 @@ export function Projector() {
       category: newCategory,
     };
 
-    const newFloorPieces = floorPieces.map((piece) => {
-      // Overwrite the newly selected floor piece with the winning one (existing piece for now)
-      if (piece.category === loser.category && piece.person === loser.person) {
-        return newWinnerPiece;
-      }
+    const newFloorPieces =
+      gameDetails?.data?.map((piece: FloorData) => {
+        // Overwrite the newly selected floor piece with the winning one (existing piece for now)
+        if (
+          piece.category === loser.category &&
+          piece.person === loser.person
+        ) {
+          return newWinnerPiece;
+        }
 
-      if (
-        piece.category === winner.category &&
-        piece.person === winner.person
-      ) {
-        return newWinnerPiece;
-      }
+        if (
+          piece.category === winner.category &&
+          piece.person === winner.person
+        ) {
+          return newWinnerPiece;
+        }
 
-      return piece;
+        return piece;
+      }) ?? [];
+
+    setGameDetails((prev) => {
+      return {
+        ...prev,
+        data: newFloorPieces,
+      };
     });
-
-    setFloorPieces(newFloorPieces);
     setSelectedFloorPiece(newWinnerPiece);
     setRound(undefined);
   };
@@ -218,8 +233,9 @@ export function Projector() {
   );
 
   const whoIsRemaining = useMemo(
-    () => new Set(floorPieces.map((piece) => piece.person)),
-    [floorPieces]
+    () =>
+      new Set(gameDetails?.data?.map((piece: FloorData) => piece.person) ?? []),
+    [gameDetails]
   );
 
   useEffect(() => {
@@ -237,22 +253,40 @@ export function Projector() {
     }
   }, [whoIsRemaining]);
 
+  if (!gameDetails) {
+    return (
+      <FloorPageLayout>
+        <div className="flex flex-col items-center justify-center h-full text-white text-xl gap-4 font-bold w-full">
+          <p className="text-center">Game not found</p>
+          <p className="text-center">Go back to start a new game</p>
+          <FloorButton
+            variant="rectangular"
+            className="font-semibold"
+            onClick={() => (window.location.href = "/presenter")}
+          >
+            Go Back
+          </FloorButton>
+        </div>
+      </FloorPageLayout>
+    );
+  }
+
   // Don't render until after hydration to avoid mismatch
   if (!mounted) {
     return (
-      <main className="w-full h-screen">
-        <div className="grid grid-cols-4 grid-rows-10 h-full p-20" />
-      </main>
+      <FloorPageLayout>
+        <div className="grid grid-cols-4 grid-rows-10 h-full p-20 w-full" />
+      </FloorPageLayout>
     );
   }
 
   if (whoIsRemaining.size === 1) {
     return (
-      <main className="w-full h-screen">
-        <div className="flex flex-col items-center justify-center h-full text-white text-9xl font-bold">
+      <FloorPageLayout>
+        <div className="flex flex-col items-center justify-center h-full text-white text-9xl font-bold w-full">
           <p className="text-center">{Array.from(whoIsRemaining)[0]} wins!</p>
         </div>
-      </main>
+      </FloorPageLayout>
     );
   }
 
@@ -268,9 +302,9 @@ export function Projector() {
   }
 
   return (
-    <main className="w-full h-screen">
-      <div className="grid grid-cols-4 grid-rows-9 h-full p-20">
-        {floorPieces.map((floorPiece, index) => {
+    <FloorPageLayout>
+      <div className="grid grid-cols-4 grid-rows-9 h-full p-20 w-full">
+        {gameDetails?.data?.map((floorPiece: FloorData, index: number) => {
           const isSameCategoryAndPerson =
             selectedFloorPiece?.category === floorPiece.category &&
             selectedFloorPiece?.person === floorPiece.person;
@@ -292,7 +326,7 @@ export function Projector() {
           );
         })}
       </div>
-    </main>
+    </FloorPageLayout>
   );
 }
 
@@ -373,9 +407,9 @@ const getHighlightedFloorPieceCategories = (
   }
 
   return adjacentIndices
-    .filter((index) => floorPieces[index].person !== selectedPerson)
+    .filter((index) => floorPieces[index]?.person !== selectedPerson)
     .map((index) => floorPieces[index])
-    .map((piece) => piece.category);
+    .map((piece) => piece?.category);
 };
 
 export default function ProjectorPage({ params }: { params: Promise<any> }) {
