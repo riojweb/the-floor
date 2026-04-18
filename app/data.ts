@@ -258,6 +258,7 @@ export type Category =
   | "Famous people who died before turning 30"
   | "Fast food chains"
   | "Fridge"
+  | "Fruits"
   | "Garage"
   | "Holidays"
   | "MLB Teams"
@@ -288,6 +289,14 @@ export type TextExample = {
   name: string;
   text: string;
   alternatives: string[];
+};
+
+export const getImageSrc = (folder: string, image: string): string => {
+  if (image.startsWith("https://") || image.startsWith("http://")) {
+    return image;
+  }
+
+  return `/images/${folder}/${image}`;
 };
 
 type CategoryMetadata = {
@@ -7730,6 +7739,53 @@ const FridgeCategory: CategoryMetadata = {
   ],
 };
 
+const FruitsCategory: CategoryMetadata = {
+  name: "Fruits",
+  folder: "fruits",
+  examples: [
+    {
+      name: "Apple",
+      image: "https://loremflickr.com/1200/900/apple?lock=101",
+      alternatives: [],
+    },
+    {
+      name: "Banana",
+      image: "https://loremflickr.com/1200/900/banana?lock=102",
+      alternatives: [],
+    },
+    {
+      name: "Blueberries",
+      image: "https://loremflickr.com/1200/900/blueberries?lock=103",
+      alternatives: [],
+    },
+    {
+      name: "Coconut",
+      image: "https://loremflickr.com/1200/900/coconut?lock=104",
+      alternatives: [],
+    },
+    {
+      name: "Grapes",
+      image: "https://loremflickr.com/1200/900/grapes?lock=105",
+      alternatives: [],
+    },
+    {
+      name: "Orange",
+      image: "https://loremflickr.com/1200/900/orange?lock=106",
+      alternatives: [],
+    },
+    {
+      name: "Strawberries",
+      image: "https://loremflickr.com/1200/900/strawberries?lock=107",
+      alternatives: [],
+    },
+    {
+      name: "Avocado",
+      image: "https://loremflickr.com/1200/900/avocado?lock=108",
+      alternatives: [],
+    },
+  ],
+};
+
 const GarageCategory: CategoryMetadata = {
   name: "Garage",
   folder: "garage",
@@ -8658,6 +8714,7 @@ export const CATEGORY_METADATA: Record<Category, CategoryMetadata> = {
     FamousPeopleWhoDiedBeforeTurning30Category,
   "Fast food chains": FastFoodChainsCategory,
   Fridge: FridgeCategory,
+  Fruits: FruitsCategory,
   Garage: GarageCategory,
   "Harry Potter characters": HarryPotterCharactersCategory,
   Holidays: HolidaysCategory,
