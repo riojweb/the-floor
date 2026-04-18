@@ -6,6 +6,7 @@ import {
   Category,
   CATEGORY_METADATA,
   FloorData,
+  getImageSrc,
   ImageExample,
   TextExample,
 } from "../data";
@@ -387,7 +388,7 @@ export function RoundDisplay({
           const nextExample = examples[nextIndex];
           if (nextExample && "image" in nextExample) {
             const img = new Image();
-            img.src = `/images/${folder}/${nextExample.image}`;
+            img.src = getImageSrc(folder, nextExample.image);
           }
         }
       }
@@ -419,7 +420,7 @@ export function RoundDisplay({
 
         return (
           <img
-            src={`/images/${folder}/${example.image}`}
+            src={getImageSrc(folder, example.image)}
             className={classNames(
               "absolute h-full w-auto max-w-full object-contain rounded transition-opacity duration-200",
               {

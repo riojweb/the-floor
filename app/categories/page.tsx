@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   Category,
   CATEGORY_METADATA,
+  getImageSrc,
   ImageExample,
   TextExample,
 } from "../data";
@@ -107,7 +108,7 @@ export default function CategoriesPage() {
                     <div className="flex flex-col gap-3">
                       <div className="bg-gray-800 rounded-md overflow-hidden flex items-center justify-center min-h-[200px]">
                         <img
-                          src={`/images/${categoryData.folder}/${item.image}`}
+                          src={getImageSrc(categoryData.folder, item.image)}
                           alt={item.name}
                           className="max-w-full max-h-[200px] object-contain"
                         />
